@@ -59,6 +59,14 @@ pub async fn client() -> io::Result<()> {
                 addr
             );
         }
+
+        let seq = 3u64;
+        let payload = "mesh-core if live 3";
+        let mut packet = Vec::with_capacity(8 + payload.len());
+        packet.extend_from_slice(&seq.to_be_bytes());
+        packet.extend_from_slice(payload.as_bytes());
+        socket.send_to(&packet, server).await?;
+        println!("Sent duplicate seq {}: {}", seq, payload);
     }
     Ok(())
 }
