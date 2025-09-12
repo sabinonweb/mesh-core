@@ -1,8 +1,19 @@
 use clap::Parser;
-use mesh_core::types::args::Args;
+use mesh_core::{
+    types::args::{Args, Mode},
+    udpsocket::{client, server},
+};
+use tokio::time::{sleep, Duration};
+
+async fn task(name: &str, interval: u64) {
+    loop {
+        println!("Task {} tick", interval);
+        sleep(Duration::from_secs(interval)).await;
+    }
+}
 
 #[tokio::main]
-async fn main() {
+async fn main() -> std::io::Result<()> {
     let arguments = Args::parse();
 
     match log4rs::init_file(&arguments.log_config, Default::default()) {
@@ -11,9 +22,22 @@ async fn main() {
     }
     log::info!("Mesh Core Initialized!");
 
-    tokio::spawn(async {
-        println!("Tick!");
-    })
-    .await
-    .unwrap();
+    match arguments.mode {
+        Mode::Server => {
+            log::info!("Starting server...");
+            server().await?;
+        }
+        Mode::Client => {
+            log::info!("Starting client...");
+            client().await?;
+        }
+    }
+    Ok(())
+
+    // let task1 = tokio::spawn(task("A", 1));
+    // let task2 = tokio::spawn(task("B", 2));
+    // let task3 = tokio::spawn(task("C", 3));
+    //
+    // // join lets us await on multiple futures
+    // let _ = tokio::join!(task1, task2, task3);
 }
