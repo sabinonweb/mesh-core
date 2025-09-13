@@ -5,7 +5,8 @@ use mesh_core::{
 };
 use tokio::time::{sleep, Duration};
 
-async fn task(name: &str, interval: u64) {
+#[allow(dead_code)]
+async fn task(_name: &str, interval: u64) {
     loop {
         println!("Task {} tick", interval);
         sleep(Duration::from_secs(interval)).await;

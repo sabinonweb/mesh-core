@@ -1,5 +1,7 @@
-use std::{collections::HashSet, io, string};
+use std::{collections::HashSet, io};
 use tokio::net::UdpSocket;
+
+use crate::utils::handle_packet;
 
 pub async fn server() -> io::Result<()> {
     let socket = UdpSocket::bind("0.0.0.0:8080").await?;
@@ -19,18 +21,7 @@ pub async fn server() -> io::Result<()> {
         let seq = u64::from_be_bytes(data[..8].try_into().unwrap());
         let payload = &data[8..];
 
-        if seen.contains(&seq) {
-            log::info!("Duplicate packet {} from {}", seq, addr);
-        } else {
-            seen.insert(seq);
-            println!("Hashset {:?}", seen);
-            log::info!(
-                "Received {} from {}: {}",
-                seq,
-                addr,
-                String::from_utf8_lossy(payload)
-            );
-        }
+        handle_packet(&mut seen, seq, payload);
 
         let ack = format!("ACK {}", seq);
         socket.send_to(ack.as_bytes(), addr).await?;
