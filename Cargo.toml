@@ -6,5 +6,5 @@ edition = "2021"
 [dependencies]
 log4rs = "1.2.0"
 log = "0.4.20"
-tokio = { version = "1.47.1", features = ["full"] }
+tokio = { version = "1.47.1", features = ["full", "rt-multi-thread"] }
 clap = { version = "4.5.47", features = ["derive"] }
