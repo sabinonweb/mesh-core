@@ -1,8 +1,9 @@
 use clap::Parser;
 use mesh_core::{
-    types::args::{Args, Mode},
-    udpsocket::{client, server},
+    configure::{make_client_endpoint, make_server_endpoint},
+    types::args::Args,
 };
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use tokio::time::{sleep, Duration};
 
 #[allow(dead_code)]
@@ -14,7 +15,7 @@ async fn task(_name: &str, interval: u64) {
 }
 
 #[tokio::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     let arguments = Args::parse();
 
     match log4rs::init_file(&arguments.log_config, Default::default()) {
@@ -23,16 +24,42 @@ async fn main() -> std::io::Result<()> {
     }
     log::info!("Mesh Core Initialized!");
 
-    match arguments.mode {
-        Mode::Server => {
-            log::info!("Starting server...");
-            server().await?;
+    let server_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 5000);
+    let (endpoint, certificates) = make_server_endpoint(server_addr).unwrap();
+    let ep = endpoint.clone();
+
+    tokio::spawn(async move {
+        // incoming connections are now accepted, hanshake is initiated
+        if let Some(incoming_connection) = ep.accept().await {
+            match incoming_connection.await {
+                Ok(connection) => log::info!(
+                    "Connection established to remote server {}",
+                    connection.remote_address()
+                ),
+                Err(e) => log::error!(
+                    "Error occured while trying to establish a connection to the remote server {}",
+                    e
+                ),
+            }
         }
-        Mode::Client => {
-            log::info!("Starting client...");
-            client().await?;
-        }
-    }
+    });
+
+    let client_endpoint =
+        make_client_endpoint(&[&certificates], "0.0.0.0:0".parse().unwrap()).unwrap();
+    // iniitates handshake to server and awaits it and returns a connection
+    let connection = client_endpoint
+        .connect(server_addr, "localhost")
+        .unwrap()
+        .await
+        .unwrap();
+    log::info!(
+        "Client Connection established {}",
+        connection.remote_address()
+    );
+
+    // for graceful cleaning
+    endpoint.wait_idle().await;
+
     Ok(())
 
     // let task1 = tokio::spawn(task("A", 1));
