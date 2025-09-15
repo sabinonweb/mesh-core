@@ -1,15 +1,18 @@
-use std::time::Duration;
-
 use async_trait::async_trait;
+use std::time::Duration;
 
 #[async_trait]
 pub trait Link {
     // Initias a connection to remote address
-    async fn dial(&self, address: &str)
-        -> Result<String, Box<dyn std::error::Error + Send + Sync>>;
+    async fn dial(
+        &self,
+        address: &str,
+    ) -> Result<Box<dyn LinkConnection>, Box<dyn std::error::Error + Send + Sync>>;
 
     // Accepts an incoming connection
-    async fn accept(&self) -> Result<String, Box<dyn std::error::Error + Send + Sync>>;
+    async fn accept(
+        &self,
+    ) -> Result<Box<dyn LinkConnection + Send + Sync>, Box<dyn std::error::Error + Send + Sync>>;
 
     // Maximum packet size for this link
     fn mtu(&self) -> usize;
