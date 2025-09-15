@@ -30,6 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>
 
     tokio::spawn(async move {
         // incoming connections are now accepted, hanshake is initiated
+        // returns none if the endpoint is closed
         if let Some(incoming_connection) = ep.accept().await {
             match incoming_connection.await {
                 Ok(connection) => log::info!(
@@ -61,11 +62,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>
     endpoint.wait_idle().await;
 
     Ok(())
-
-    // let task1 = tokio::spawn(task("A", 1));
-    // let task2 = tokio::spawn(task("B", 2));
-    // let task3 = tokio::spawn(task("C", 3));
-    //
-    // // join lets us await on multiple futures
-    // let _ = tokio::join!(task1, task2, task3);
 }
