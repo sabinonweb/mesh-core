@@ -3,17 +3,29 @@ use crate::{
     link::{Link, LinkConnection},
     MeshError,
 };
-use quinn::{Connection, Endpoint};
+use quinn::{rustls::pki_types::CertificateDer, Connection, Endpoint};
+use rcgen::{Issuer, KeyPair};
 use std::{net::SocketAddr, sync::Arc, time::Duration};
-use tokio::sync::Mutex;
+use tokio::{io::AsyncReadExt, sync::Mutex};
 
+#[derive(Debug, Clone)]
 pub struct WifiQuicLink {
     pub endpoint: Endpoint,
 }
 
 impl WifiQuicLink {
-    pub fn new(addr: &str) -> Result<Self, MeshError> {
-        let endpoint = make_endpoint(addr.parse::<SocketAddr>()?)?;
+    pub fn new(
+        addr: &str,
+        trusted_peers: &[CertificateDer<'static>],
+        node_name: &str,
+        issuer: &Issuer<'static, KeyPair>,
+    ) -> Result<Self, MeshError> {
+        let endpoint = make_endpoint(
+            addr.parse::<SocketAddr>()?,
+            trusted_peers,
+            node_name,
+            issuer,
+        )?;
         Ok(Self { endpoint })
     }
 }
@@ -39,7 +51,8 @@ impl Link for WifiQuicLink {
     ) -> Result<Box<dyn LinkConnection + Send + Sync>, Box<dyn std::error::Error + Send + Sync>>
     {
         // Wait for an incoming handshake
-        if let Some(connecting) = self.endpoint.accept().await {
+
+        while let Some(connecting) = self.endpoint.accept().await {
             // Finish QUIC handshake
             match connecting.await {
                 Ok(connection) => {
@@ -47,20 +60,21 @@ impl Link for WifiQuicLink {
                         "Connection established to remote peer {}",
                         connection.remote_address()
                     );
-                    Ok(Box::new(WifiQuicLinkConnection {
+                    return Ok(Box::new(WifiQuicLinkConnection {
                         connection: Arc::new(Mutex::new(connection)),
-                    }))
+                    }));
                 }
                 Err(e) => {
                     log::error!("Error establishing connection: {}", e);
-                    Err(Box::new(e)) // return the actual error, not a string
+                    return Err(Box::new(e));
                 }
-            }
-        } else {
-            log::error!("No incoming connection");
-            Err("No incoming connection".into())
+            };
         }
+
+        log::error!("Endpoint closed; no more incoming connections");
+        Err("endpoint closed; no more incoming connections".into())
     }
+
     fn mtu(&self) -> usize {
         100
     }
@@ -70,6 +84,7 @@ impl Link for WifiQuicLink {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct WifiQuicLinkConnection {
     connection: Arc<Mutex<Connection>>,
 }
@@ -79,16 +94,10 @@ impl LinkConnection for WifiQuicLinkConnection {
     async fn send(&self, data: &[u8]) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let connection = self.connection.lock().await;
         let (mut send, _receive) = connection.clone().open_bi().await?;
-        match send.write_all(data).await {
-            Ok(()) => {
-                log::info!("Data is successfully sent!");
-                Ok(())
-            }
-            Err(e) => {
-                log::error!("Error occurred while sending data!");
-                Err(e.into())
-            }
-        }
+        send.write_all(data).await?;
+        send.finish()?;
+        log::info!("Data is successfully sent!");
+        Ok(())
     }
 
     async fn receive(&self) -> Result<Vec<u8>, Box<dyn std::error::Error + Send + Sync>> {
@@ -96,7 +105,7 @@ impl LinkConnection for WifiQuicLinkConnection {
         let bi_stream = connection.accept_bi().await?;
         let (_send, mut receive) = bi_stream;
 
-        let mut buf = Vec::new();
+        let mut buf = vec![0u8; 1024];
         match receive.read(&mut buf).await {
             Ok(_) => {
                 log::info!("Data read successfully!");

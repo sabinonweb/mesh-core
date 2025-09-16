@@ -13,6 +13,7 @@ quinn = "0.11.9"
 rcgen = "0.14.4"
 prost = "0.14"
 prost-types = "0.14"
+time = "0.3.43"
 
 [build-dependencies]
 prost-build = "0.12"

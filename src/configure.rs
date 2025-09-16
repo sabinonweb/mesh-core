@@ -3,14 +3,23 @@ use quinn::{
     rustls::pki_types::{CertificateDer, PrivatePkcs8KeyDer},
     ClientConfig, Endpoint, ServerConfig,
 };
+use rcgen::{Issuer, KeyPair};
 use std::{net::SocketAddr, sync::Arc};
 
-use crate::{MeshError, StaticMeshError};
+use crate::{utils::generate_node_certs, MeshError, StaticMeshError};
 
-pub fn make_endpoint(addr: SocketAddr) -> Result<Endpoint, MeshError> {
-    let (server_config, certificates) = configure_server()?;
+pub fn make_endpoint(
+    addr: SocketAddr,
+    trusted_peers: &[CertificateDer<'static>],
+    node_name: &str,
+    issuer: &Issuer<'static, KeyPair>,
+) -> Result<Endpoint, MeshError> {
+    let (server_config, certificates) = configure_server(node_name, &issuer)?;
     let mut endpoint = Endpoint::server(server_config, addr)?;
-    let client_config = configure_client(&[&certificates])?;
+
+    let mut trusted_peers: Vec<&[u8]> = trusted_peers.iter().map(|c| c.as_ref()).collect();
+    trusted_peers.push(&certificates);
+    let client_config = configure_client(&trusted_peers)?;
     endpoint.set_default_client_config(client_config);
 
     Ok(endpoint)
@@ -29,8 +38,10 @@ pub fn make_client_endpoint(
 
 pub fn make_server_endpoint(
     addr: SocketAddr,
+    node_name: &str,
+    issuer: Issuer<'static, KeyPair>,
 ) -> Result<(Endpoint, CertificateDer<'static>), StaticMeshError> {
-    let (server_config, certificates) = configure_server()?;
+    let (server_config, certificates) = configure_server(node_name, &issuer)?;
     let endpoint = Endpoint::server(server_config, addr)?;
 
     Ok((endpoint, certificates))
@@ -48,11 +59,14 @@ fn configure_client(server_certificates: &[&[u8]]) -> Result<ClientConfig, Stati
     ))?)
 }
 
-fn configure_server() -> Result<(ServerConfig, CertificateDer<'static>), StaticMeshError> {
+fn configure_server(
+    node_name: &str,
+    issuer: &Issuer<'static, KeyPair>,
+) -> Result<(ServerConfig, CertificateDer<'static>), StaticMeshError> {
     // for now we are using self signed certicates without any Cetificate Authority
-    let certificate = rcgen::generate_simple_self_signed(vec!["localhost".into()]).unwrap();
-    let certificate_der = CertificateDer::from(certificate.cert);
-    let private_key = PrivatePkcs8KeyDer::from(certificate.signing_key.serialize_der());
+    let (node_cert, key_pair) = generate_node_certs(&issuer, node_name);
+    let certificate_der = node_cert.clone().der().clone().into_owned();
+    let private_key = PrivatePkcs8KeyDer::from(key_pair.serialize_der());
 
     let mut server_config =
         ServerConfig::with_single_cert(vec![certificate_der.clone()], private_key.into())?;
