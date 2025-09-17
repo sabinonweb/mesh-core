@@ -1,0 +1,30 @@
+services:
+  node1:
+    image: mesh-core-test
+    container_name: node1
+    ports:
+      - "4000:4000/udp"
+      - "5000:5000/udp"
+      - "5001:5001/udp"
+      - "5002:5002/udp"
+    command: ["mesh-core", "--node-name", "node1", "--port", "5000"]
+
+  node2:
+    image: mesh-core-test
+    container_name: node2
+    ports:
+      - "4003:4000/udp"
+      - "5003:5000/udp"
+      - "5004:5001/udp"
+      - "5005:5002/udp"
+    command: ["mesh-core", "--node-name", "node2", "--port", "5001"]
+
+  node3:
+    image: mesh-core-test
+    container_name: node3
+    ports:
+      - "4006:4000/udp"
+      - "5006:5000/udp"
+      - "5007:5001/udp"
+      - "5008:5002/udp"
+    command: ["mesh-core", "--node-name", "node3", "--port", "5002"]
