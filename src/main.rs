@@ -27,6 +27,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>
     let (_node1_cert, _node1_key) = generate_node_certs(&ca_issuer, "Node 1");
     let (_node2_cert, _node2_key) = generate_node_certs(&ca_issuer, "Node 2");
 
+    for (i, port) in [5000, 5001, 5002].iter().enumerate() {
+        println!("i {}, port {}", i, port);
+    }
+
     let node1 = WifiQuicLink::new(
         "127.0.0.1:8000",
         &[ca_cert.der().clone().into_owned()],

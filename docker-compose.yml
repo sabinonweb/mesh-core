@@ -1,0 +1,41 @@
+x-mesh-common: &mesh-common
+  image: mesh-core-test
+  build: .
+  restart: unless-stopped
+  networks:
+    - meshnet
+
+services:
+  node1:
+    <<: *mesh-common
+    container_name: node1
+    command: ["mesh-core", "--node-name", "node1", "--port", "5000"]
+    ports:
+      - "4000:4000/udp"
+      - "5000:5000/udp"
+      - "5001:5001/udp"
+      - "5002:5002/udp"
+
+  node2:
+    <<: *mesh-common
+    container_name: node2
+    command: ["mesh-core", "--node-name", "node2", "--port", "5001"]
+    ports:
+      - "4003:4000/udp"
+      - "5003:5000/udp"
+      - "5004:5001/udp"
+      - "5005:5002/udp"
+
+  node3:
+    <<: *mesh-common
+    container_name: node3
+    command: ["mesh-core", "--node-name", "node3", "--port", "5002"]
+    ports:
+      - "4006:4000/udp"
+      - "5006:5000/udp"
+      - "5007:5001/udp"
+      - "5008:5002/udp"
+
+networks:
+  meshnet:
+    driver: bridge
