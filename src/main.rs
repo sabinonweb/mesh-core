@@ -1,12 +1,7 @@
 use clap::Parser;
 use mesh_core::mesh::MeshMessage;
 use mesh_core::utils::{generate_certificate_authority, generate_node_certs};
-use mesh_core::{
-    configure::{make_client_endpoint, make_server_endpoint},
-    link::Link,
-    types::args::Args,
-    wifi::WifiQuicLink,
-};
+use mesh_core::{link::Link, types::args::Args, wifi::WifiQuicLink};
 use prost::Message;
 use tokio::time::{sleep, Duration};
 

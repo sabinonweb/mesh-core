@@ -8,6 +8,7 @@ pub mod mesh {
 
 pub mod configure;
 pub mod connection;
+pub mod discovery;
 pub mod link;
 pub mod types;
 pub mod udpsocket;
