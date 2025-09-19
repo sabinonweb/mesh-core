@@ -1,12 +1,13 @@
 use crate::{
     configure::make_endpoint,
     link::{Link, LinkConnection},
+    types::wifi_quic::WifiQuicLinkConnection,
     MeshError,
 };
-use quinn::{rustls::pki_types::CertificateDer, Connection, Endpoint};
+use quinn::{rustls::pki_types::CertificateDer, Endpoint};
 use rcgen::{Issuer, KeyPair};
 use std::{net::SocketAddr, sync::Arc, time::Duration};
-use tokio::{io::AsyncReadExt, sync::Mutex};
+use tokio::sync::Mutex;
 
 #[derive(Debug, Clone)]
 pub struct WifiQuicLink {
@@ -35,7 +36,8 @@ impl Link for WifiQuicLink {
     async fn dial(
         &self,
         address: &str,
-    ) -> Result<Box<dyn LinkConnection>, Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<Box<dyn LinkConnection + Send + Sync>, Box<dyn std::error::Error + Send + Sync>>
+    {
         let connection = self
             .endpoint
             .connect(address.parse::<SocketAddr>()?, "localhost")?
@@ -82,11 +84,6 @@ impl Link for WifiQuicLink {
     fn latency(&self) -> std::time::Duration {
         Duration::from_millis(10)
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct WifiQuicLinkConnection {
-    connection: Arc<Mutex<Connection>>,
 }
 
 #[async_trait::async_trait]

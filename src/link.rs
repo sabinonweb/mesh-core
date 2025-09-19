@@ -7,7 +7,7 @@ pub trait Link {
     async fn dial(
         &self,
         address: &str,
-    ) -> Result<Box<dyn LinkConnection>, Box<dyn std::error::Error + Send + Sync>>;
+    ) -> Result<Box<dyn LinkConnection + Send + Sync>, Box<dyn std::error::Error + Send + Sync>>;
 
     // Accepts an incoming connection
     async fn accept(
