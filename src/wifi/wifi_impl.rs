@@ -1,6 +1,5 @@
 use crate::{
-    configure::make_endpoint,
-    link::{Link, LinkConnection},
+    link::link_trait::{Link, LinkConnection},
     types::wifi_quic::WifiQuicLinkConnection,
     MeshError,
 };
@@ -8,6 +7,8 @@ use quinn::{rustls::pki_types::CertificateDer, Endpoint};
 use rcgen::{Issuer, KeyPair};
 use std::{net::SocketAddr, sync::Arc, time::Duration};
 use tokio::sync::Mutex;
+
+use super::configure::make_endpoint;
 
 #[derive(Debug, Clone)]
 pub struct WifiQuicLink {

@@ -1,5 +1,5 @@
 use super::peer::{PeerID, PeerStore};
-use crate::{link::Link, MeshError};
+use crate::{link::link_trait::Link, MeshError};
 use std::sync::{Arc, Mutex};
 
 pub struct RoutingLayer<L: Link + Clone + Send + Sync + 'static> {

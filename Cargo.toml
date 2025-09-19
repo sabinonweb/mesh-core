@@ -19,6 +19,8 @@ env_logger = "0.11.8"
 btleplug = "0.11.8"
 uuid = "1.18.1"
 tokio-stream = "0.1.17"
+objc = "0.2.7"
+objc-foundation = "0.1.1"
 
 [build-dependencies]
 prost-build = "0.12"

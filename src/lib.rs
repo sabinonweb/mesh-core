@@ -6,12 +6,8 @@ pub mod mesh {
     include!(concat!(env!("OUT_DIR"), "/mesh.rs"));
 }
 
-pub mod ble;
-pub mod configure;
-pub mod connection;
-pub mod discovery;
+pub mod bluetooth;
 pub mod link;
 pub mod types;
-pub mod udpsocket;
 pub mod utils;
 pub mod wifi;

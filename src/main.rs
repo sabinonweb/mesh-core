@@ -1,7 +1,8 @@
 use clap::Parser;
 use mesh_core::mesh::MeshMessage;
+use mesh_core::types::args::Args;
 use mesh_core::utils::{generate_certificate_authority, generate_node_certs};
-use mesh_core::{link::Link, types::args::Args, wifi::WifiQuicLink};
+use mesh_core::{link::link_trait::Link, wifi::wifi_impl::WifiQuicLink};
 use prost::Message;
 use tokio::time::{sleep, Duration};
 

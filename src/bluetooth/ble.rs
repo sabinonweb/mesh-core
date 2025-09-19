@@ -1,5 +1,5 @@
 use crate::{
-    link::{Link, LinkConnection},
+    link::link_trait::{Link, LinkConnection},
     types::ble_types::{BleLink, BleLinkConnection, DEFAULT_MTU, HEADER_SIZE},
 };
 use async_trait::async_trait;
@@ -9,13 +9,12 @@ use tokio::sync::Mutex;
 
 #[async_trait]
 impl Link for BleLink {
+    // finds the selected peripheral, acts as central which scans for peripherals
     async fn dial(
         &self,
         address: &str,
-    ) -> Result<
-        Box<dyn crate::link::LinkConnection + Send + Sync>,
-        Box<dyn std::error::Error + Send + Sync>,
-    > {
+    ) -> Result<Box<dyn LinkConnection + Send + Sync>, Box<dyn std::error::Error + Send + Sync>>
+    {
         let (_tx, rx) = tokio::sync::mpsc::channel(32);
 
         self.adapter.start_scan(Default::default()).await?;
@@ -44,11 +43,12 @@ impl Link for BleLink {
         }))
     }
 
+    // acts for peripherals
     async fn accept(
         &self,
     ) -> Result<Box<dyn LinkConnection + Send + Sync>, Box<dyn std::error::Error + Send + Sync>>
     {
-        unimplemented!("Central-only BLE on Mac. Cannot accept connections.")
+        unimplemented!()
     }
 
     fn mtu(&self) -> usize {
