@@ -1,5 +1,11 @@
 use std::{collections::HashMap, net::SocketAddr, time::Instant};
 
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum LinkType {
+    Wifi,
+    Ble,
+}
+
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct PeerID(pub String);
 
@@ -7,6 +13,7 @@ pub struct PeerID(pub String);
 pub struct PeerInfo {
     pub id: PeerID,
     pub wifi_addr: Option<SocketAddr>,
+    pub ble_addr: Option<String>,
     pub last_seen: Instant,
     pub rtt_ms: Option<u32>,
     pub mtu: Option<usize>,
