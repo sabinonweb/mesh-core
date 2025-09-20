@@ -63,6 +63,7 @@ pub async fn listener(peer_store: Arc<Mutex<PeerStore>>, address: String) {
                             let peer_info = PeerInfo {
                                 id: PeerID(id.to_string()),
                                 wifi_addr: Some(addr),
+                                ble_addr: None,
                                 last_seen: Instant::now(),
                                 rtt_ms: None,
                                 mtu: None,
