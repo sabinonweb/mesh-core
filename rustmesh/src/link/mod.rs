@@ -1,4 +1,13 @@
+pub mod wifi;
+
+#[derive(Debug)]
+pub enum LinkError {
+    SendError(String),
+    RecvError(String),
+}
+
+#[async_trait::async_trait]
 pub trait Link {
-    fn send(&self, data: Vec<u8>);
-    fn recv(&self) -> Vec<u8>;
+    async fn send(&self, data: &[u8]) -> Result<(), LinkError>;
+    async fn recv(&self) -> Result<Option<Vec<u8>>, LinkError>;
 }
