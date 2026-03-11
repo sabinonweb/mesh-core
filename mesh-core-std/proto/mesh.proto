@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-package mesh;
-
-message MeshMessage {
-  string sender = 1;
-  string content = 2;
-}

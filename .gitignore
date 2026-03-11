@@ -3,6 +3,6 @@
 /tmp 
 /log
 /media
-
+**/target/
 .env
 .DS_Store

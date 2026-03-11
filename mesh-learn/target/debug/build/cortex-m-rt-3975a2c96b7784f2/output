@@ -1,8 +1,0 @@
-cargo:rustc-check-cfg=cfg(armv6m)
-cargo:rustc-check-cfg=cfg(armv7m)
-cargo:rustc-check-cfg=cfg(armv8m)
-cargo:rustc-check-cfg=cfg(cortex_m)
-cargo:rustc-check-cfg=cfg(has_fpu)
-cargo:rustc-link-search=/Users/sabinonweb/Documents/Projects/mesh-core/mesh-learn/target/debug/build/cortex-m-rt-3975a2c96b7784f2/out
-cargo:rerun-if-changed=build.rs
-cargo:rerun-if-changed=link.x.in

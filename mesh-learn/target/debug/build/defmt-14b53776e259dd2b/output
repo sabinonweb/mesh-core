@@ -1,3 +1,0 @@
-cargo:rustc-link-search=/Users/sabinonweb/Documents/Projects/mesh-core/mesh-learn/target/debug/build/defmt-14b53776e259dd2b/out
-cargo:rustc-check-cfg=cfg(c_variadic)
-cargo:rustc-check-cfg=cfg(no_cas)
